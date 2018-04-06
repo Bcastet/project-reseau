@@ -12,7 +12,15 @@ class NetworkServerController:
     def __init__(self, model, port):
         self.model = model
         self.port = port
-        # ...
+        self.socket_client_list=[]
+        self.nicks_list={}
+        self.new_element_this_tick=[]
+        
+    def get_socket_client_list(self):
+        return self.socket_client_list
+
+    def add_socket(self,socket):
+        self.socket_client_list.append(socket)
 
     # time event
 
