@@ -49,6 +49,7 @@ s.send(("NAME "+nickname).encode())
 view = GraphicView(model, nickname)
 client = NetworkClientController(model, host, port, nickname)
 client.load_model_from_server(s)
+client.model.player=nickname
 kb = KeyboardController(client)
 
 # main loop

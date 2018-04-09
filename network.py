@@ -48,9 +48,6 @@ class NetworkServerController:
         socket.send(self.bombs.encode())
         print(bombs+"\n")
 
-    def send_model_players(self,socket):
-        socket.send(str(self.model.player).encode())
-
     def send_model_fruits(self,socket):
         fruits = ""
         for i in self.model.fruits:
@@ -128,20 +125,17 @@ class NetworkClientController:
 
             self.model.add_fruit(int(this_fruit[1]),pos)
 
-    def load_model_bombs_from_str:
-        bombs = (string_bombs.decode()).split("?")
-        for i in range(len(fruits)-1):
-            this_bomb = bombs[i].split("!")
+    def load_model_players_from_str(self,string_players):
+        players = (string_players.decode()).split("?")
+        for i in range(len(players)-1):
+            print(i)
+            self.model.players.append(i)
 
-            self.model.add_bomb(int(this_fruit[1]),pos)
-        
     def load_model_from_server(self,socket):
         socket.send("LOAD_MODEL CHARACTERS".encode())
         self.load_model_characters_from_str((socket.recv(4096)))
         socket.send("LOAD_MODEL FRUITS".encode())
         self.load_model_fruits_from_str((socket.recv(4096)))
-        socket.send("LOAD_MODEL PLAYERS".encode())
-        self.load_model_players_from_str((socket.recv(4096)))
     # time event
 
     def tick(self, dt):
