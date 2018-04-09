@@ -33,28 +33,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(ADDR)
 
 #declarations
-def load_model_characters_from_str(string_characters):
-    characters = (string_characters.decode()).split("?")
-    for i in range(len(characters)-1):
-        
-        this_char = characters[i].split("!")
-        position_str = this_char[5].replace("(","")
-        position_str = position_str.replace(")","")
-        position_splitted = position_str.split(", ")
-        pos = (int(position_splitted[0]),int(position_splitted[1]))
-        model.add_character(this_char[4],True,int(this_char[0]),pos)
 
-        model.characters[i].health = int(this_char[1])
-        model.characters[i].immunity = int(this_char[2])
-        model.characters[i].disarmed = int(this_char[3])
-
-
-        model.characters[i].direction = int(this_char[6])
-
-
-def load_model_from_server():
-    s.send("LOAD_MODEL CHARACTERS".encode())
-    load_model_characters_from_str((s.recv(4096)))
 
 
 
@@ -67,9 +46,9 @@ s.send("GET_MAP_NAME".encode())
 model = Model()
 model.load_map(s.recv(4096).decode())
 s.send(("NAME "+nickname).encode())
-load_model_from_server()
 view = GraphicView(model, nickname)
 client = NetworkClientController(model, host, port, nickname)
+client.load_model_from_server(s)
 kb = KeyboardController(client)
 
 # main loop
