@@ -47,9 +47,9 @@ model = Model()
 model.load_map(s.recv(4096).decode())
 s.send(("NAME "+nickname).encode())
 view = GraphicView(model, nickname)
-client = NetworkClientController(model, host, port, nickname)
-client.load_model_from_server(s)
+client = NetworkClientController(model, host, port, nickname,s)
 client.model.player=nickname
+client.load_model_from_server(s)
 kb = KeyboardController(client)
 
 # main loop

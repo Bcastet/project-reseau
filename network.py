@@ -64,6 +64,11 @@ class NetworkServerController:
         if msg.startswith("PLAYERS".encode()):
             self.send_model_players(socket_client)
 
+    def send_char_pos(self,socket):
+        char_pos = ""
+        for i in self.model.characters:
+            char_pos = char_pos+str(i.pos)+"?"
+        socket.send(char_pos.encode())
 
 ################################################################################
 #                          NETWORK CLIENT CONTROLLER                           #
@@ -71,11 +76,12 @@ class NetworkServerController:
 
 class NetworkClientController:
 
-    def __init__(self, model, host, port, nickname):
+    def __init__(self, model, host, port, nickname,socket_server):
         self.model = model
         self.host = host
         self.port = port
         self.nickname = nickname
+        self.socket_server = socket_server
         # ...
 
     # keyboard events
@@ -109,6 +115,7 @@ class NetworkClientController:
             position_splitted = position_str.split(", ")
             pos = (int(position_splitted[0]),int(position_splitted[1]))
             self.model.add_character(this_char[4],True,int(this_char[0]),pos)
+            self.model.player.pos=pos
             self.model.characters[i].health = int(this_char[1])
             self.model.characters[i].immunity = int(this_char[2])
             self.model.characters[i].disarmed = int(this_char[3])
@@ -136,8 +143,18 @@ class NetworkClientController:
         self.load_model_characters_from_str((socket.recv(4096)))
         socket.send("LOAD_MODEL FRUITS".encode())
         self.load_model_fruits_from_str((socket.recv(4096)))
+
+    def reload_pos_char(self,str_pos_char):
+        list_pos = (str_pos_char.decode()).split("?")
+        for i in range(len(self.model.characters)):
+            self.model.characters[i].pos = self.position_from_str(list_pos[i])
+
+    def actualize_from_server(self):
+        self.socket_server.send("CHAR_POS".encode())
+        self.reload_pos_char(self.socket_server.recv(4096))
+
     # time event
 
     def tick(self, dt):
-        # ...
+        self.actualize_from_server()
         return True

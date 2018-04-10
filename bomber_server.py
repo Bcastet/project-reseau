@@ -73,8 +73,8 @@ while True:
                 new_element_this_tick.append("CHARACTER")
             if msg.startswith("MOVE".encode()):
                 msg_bis = msg.replace("MOVE ".encode(),"".encode())
-
-
+            if msg.startswith("CHAR_POS".encode()):
+                server.send_char_pos(i)
 
     #all elements computed, actualize clock and sending server_model
     dt = clock.tick(FPS)
