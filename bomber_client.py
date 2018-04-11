@@ -58,8 +58,7 @@ while True:
     view.tick(dt)
     if not kb.tick(dt): break
     if not client.tick(dt): break
-    print(model.player.nickname)
-    print(model.player.pos)
+    
     #model.tick(dt)
 
 

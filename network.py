@@ -162,13 +162,16 @@ class NetworkClientController:
         for i in range(len(bombs)-1):
             this_bomb = bombs[i].split("!")
             if i==len(self.model.bombs):
-                if(len(this_bomb)<4):
+                print(this_bomb)
+                if(len(this_bomb)<=4):
+                    print(this_bomb[0])
                     pos = self.position_from_str(this_bomb[0])
                 else:
+                    print(this_bomb[1])
                     pos = self.position_from_str(this_bomb[1])
                 boum=Bomb(self.model.map,pos)
                 self.model.bombs.append(boum)
-            if(len(this_bomb)<4):
+            if(len(this_bomb)<=4):
                 pos = self.position_from_str(this_bomb[0])
                 self.model.bombs[i].pos=pos
                 self.model.bombs[i].max_range = this_bomb[1]
