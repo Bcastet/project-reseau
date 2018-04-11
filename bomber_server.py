@@ -46,7 +46,7 @@ model.load_map(map_file)
 for _ in range(10): model.add_fruit()
 server = NetworkServerController(model, port)
 
-# view = GraphicView(model, "server")
+view = GraphicView(model, "server")
 #declarations
 
 
@@ -61,26 +61,33 @@ while True:
             server.add_socket(sock_received)
             server.nicks_list[sock_received]="NO NAME"
         else:
-            msg , addr = i.recvfrom(2048)
-            if msg.startswith("NAME".encode()):
-                print(msg)
-                server.add_name(msg,i)
-            if msg.startswith("GET_MAP_NAME".encode()):
-                i.send(map_file.encode())
-            if msg.startswith("LOAD_MODEL".encode()):
-                msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
-                server.send_model(i,msg_bis)
-                new_element_this_tick.append("CHARACTER")
-            if msg.startswith("MOVE".encode()):
-                msg_bis = msg.replace("MOVE ".encode(),"".encode())
-            if msg.startswith("CHAR_POS".encode()):
-                server.send_char_pos(i)
+            msg1 , addr = i.recvfrom(2048)
+            #print(msg)
+            msg1=msg1.split("&".encode())
+            for msg in msg1:
+                if msg.startswith("NAME".encode()):
+                    server.add_name(msg,i)
+                if msg.startswith("GET_MAP_NAME".encode()):
+                    i.send(map_file.encode())
+                if msg.startswith("LOAD_MODEL".encode()):
+                    msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
+
+                    server.send_model(i,msg_bis)
+                if msg.startswith("MOVE".encode()):
+                    msg = msg.decode()
+                    direction = msg.replace("MOVE ","")
+                    server.model.move_character(server.nicks_list[i].decode(),int(direction))
+                else:
+                    if msg.startswith("DROP_BOMB".encode()):
+                        server.model.drop_bomb(server.nicks_list[i].decode())
+
+
 
     #all elements computed, actualize clock and sending server_model
     dt = clock.tick(FPS)
     server.tick(dt)
     model.tick(dt)
-    # view.tick(dt)
+    view.tick(dt)
 
 # quit
 print("Game Over!")

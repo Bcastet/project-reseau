@@ -42,13 +42,12 @@ s.connect(ADDR)
 pygame.display.init()
 pygame.font.init()
 clock = pygame.time.Clock()
-s.send("GET_MAP_NAME".encode())
+s.send("GET_MAP_NAME&".encode())
 model = Model()
 model.load_map(s.recv(4096).decode())
-s.send(("NAME "+nickname).encode())
+s.send(("NAME "+nickname+"&").encode())
 view = GraphicView(model, nickname)
 client = NetworkClientController(model, host, port, nickname,s)
-client.model.player=nickname
 client.load_model_from_server(s)
 kb = KeyboardController(client)
 
@@ -56,11 +55,12 @@ kb = KeyboardController(client)
 while True:
     # make sure game doesn't run at more than FPS frames per second
     dt = clock.tick(FPS)
+    view.tick(dt)
     if not kb.tick(dt): break
     if not client.tick(dt): break
-    model.tick(dt)
-    view.tick(dt)
-
+    print(model.player.nickname)
+    print(model.player.pos)
+    #model.tick(dt)
 
 
 # quit
