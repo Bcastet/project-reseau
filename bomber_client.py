@@ -46,6 +46,8 @@ s.send("GET_MAP_NAME&".encode())
 model = Model()
 model.load_map(s.recv(4096).decode())
 s.send(("NAME "+nickname+"&").encode())
+s.send("MAX_PORT".encode())
+max_port=int(s.recv(4096).decode())
 view = GraphicView(model, nickname)
 client = NetworkClientController(model, host, port, nickname,s)
 client.load_model_from_server(s)
@@ -53,15 +55,29 @@ kb = KeyboardController(client)
 
 # main loop
 while True:
+    while True:
     # make sure game doesn't run at more than FPS frames per second
-    dt = clock.tick(FPS)
-    view.tick(dt)
-    if not kb.tick(dt): break
-    if not client.tick(dt): break
-
+        dt = clock.tick(FPS)
+        view.tick(dt)
+        if not kb.tick(dt): break
+        if not client.tick(dt): break
+    s.close()
+    addrs2=socket.getaddrinfo(host,"http",0,socket.SOCK_STREAM)
+    if port==max_port:
+        
+        break
+    ADDR2=(host,port+1)
+    port=port+1
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(ADDR2)
+    s.send("GET_MAP_NAME&".encode())
+    model.load_map(s.recv(4096).decode())
+    s.send(("NAME "+nickname+"&").encode())
+    view = GraphicView(model, nickname)
+    client = NetworkClientController(model, host, port, nickname,s)
+    client.load_model_from_server(s)
+    kb = KeyboardController(client)
     #model.tick(dt)
-
-
 # quit
 print("Game Over!")
 pygame.quit()

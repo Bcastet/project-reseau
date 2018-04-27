@@ -23,7 +23,7 @@ class NetworkServerController:
 
     # time event
     def kick(self,socket):
-            if self.model.look(self.nicks_list[socket])!=None:
+            if self.model.look(self.nicks_list[socket].decode())!=None:
                 self.model.kill_character(self.nicks_list[socket].decode())
             del(self.socket_client_list[socket])
 
@@ -31,6 +31,8 @@ class NetworkServerController:
         to_kick=[]
         if random.randint(0,100)==1:
             self.model.add_fruit()
+        #if random.randint(0,100)==1:
+        #    self.model.bombs.append(Bomb(self.model.map, self.model.characters[random.randint(1,len(self.model.characters))-1].pos))
         for i in self.socket_client_list.keys():
             self.socket_client_list[i]=self.socket_client_list[i]+1
             if self.socket_client_list[i]==40:
@@ -120,14 +122,7 @@ class NetworkClientController:
         return (int(pos_splitted[0]),int(pos_splitted[1]))
 
     def load_model_characters_from_str(self,string_characters):
-        print(string_characters)
-        if string_characters.startswith("DEAD".encode()):
-
-            string_characters=string_characters.decode()
-            string_characters=string_characters.replace("DEAD!","")
-            string_characters=string_characters.replace("?","")
-            return False
-            #self.redirection_dead(string_characters)
+        #self.redirection_dead(string_characters)
         characters = (string_characters.decode()).split("?")
         for i in range(len(characters)-1):
             this_char = characters[i].split("!")
@@ -239,6 +234,6 @@ class NetworkClientController:
         pygame.quit()
 
     def tick(self, dt):
-        bool = self.get_model()
+        self.get_model()
         self.model.tick(dt)
         return self.model.look(self.nickname)!=None

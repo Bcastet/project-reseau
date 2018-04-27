@@ -15,12 +15,8 @@ import errno
 print("python version: {}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2]))
 print("pygame version: ", pygame.version.ver)
 
-PORT=7777
 
-sock = socket.socket(socket.AF_INET6,socket.SOCK_STREAM)
-sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-sock.bind(('',PORT))
-sock.listen(1)
+
 
 
 ################################################################################
@@ -31,12 +27,24 @@ sock.listen(1)
 if len(sys.argv) == 2:
     port = int(sys.argv[1])
     map_file = DEFAULT_MAP
+    max_port=port
 elif len(sys.argv) == 3:
     port = int(sys.argv[1])
     map_file = sys.argv[2]
+    max_port=port
+elif len(sys.argv) == 4:
+    port = int(sys.argv[1])
+    map_file = sys.argv[2]
+    max_port = sys.argv[3]
 else:
     print("Usage: {} port [map_file]".format(sys.argv[0]))
     sys.exit()
+
+sock = socket.socket(socket.AF_INET6,socket.SOCK_STREAM)
+sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+sock.bind(('',port))
+sock.listen(1)
+
 
 # initialization
 pygame.display.init()
@@ -65,12 +73,11 @@ while True:
             try:
                 msg1 , addr = i.recvfrom(2048)
             except Exception as e:
-                    print("Client connection died")
+                    print("=>Client connection died")
                     server.kick(i)
                     break
 
             if msg1=="".encode():
-                print("nothing")
                 server.socket_client_list[i]=server.socket_client_list[i]+1
                 if server.socket_client_list[i]==40:
                     server.kick(i)
@@ -81,18 +88,13 @@ while True:
                         server.add_name(msg,i)
                     if msg.startswith("GET_MAP_NAME".encode()):
                         i.send(map_file.encode())
+                    if msg.startswith("MAX_PORT".encode()):
+                        i.send(str(max_port).encode())
                     if msg.startswith("LOAD_MODEL".encode()):
-                        for y in server.model.characters:
-                            bool = False
-                            print(server.nicks_list[i])
-                            if y.nickname.encode()==server.nicks_list[i]:
-                                bool = True
-                            break
-                        if bool:
+
                             msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
                             server.send_model(i,msg_bis)
-                        else :
-                            i.send("DEAD!7776?".encode())
+
                     if msg.startswith("MOVE".encode()):
                         msg = msg.decode()
                         direction = msg.replace("MOVE ","")
@@ -102,10 +104,10 @@ while True:
                             server.model.drop_bomb(server.nicks_list[i].decode())
                 server.socket_client_list[i]=0
     #all elements computed, actualize clock and sending server_model
-        dt = clock.tick(FPS)
-        server.tick(dt)
-        model.tick(dt)
-        view.tick(dt)
+                dt = clock.tick(FPS)
+                server.tick(dt)
+                model.tick(dt)
+                view.tick(dt)
 
 # quit
 print("Game Over!")
