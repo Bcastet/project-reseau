@@ -23,7 +23,8 @@ class NetworkServerController:
 
     # time event
     def kick(self,socket):
-            self.model.kill_character(self.nicks_list[socket].decode())
+            if self.model.look(self.nicks_list[socket])!=None:
+                self.model.kill_character(self.nicks_list[socket].decode())
             del(self.socket_client_list[socket])
 
     def tick(self, dt):
@@ -119,7 +120,14 @@ class NetworkClientController:
         return (int(pos_splitted[0]),int(pos_splitted[1]))
 
     def load_model_characters_from_str(self,string_characters):
+        print(string_characters)
+        if string_characters.startswith("DEAD".encode()):
 
+            string_characters=string_characters.decode()
+            string_characters=string_characters.replace("DEAD!","")
+            string_characters=string_characters.replace("?","")
+            return False
+            #self.redirection_dead(string_characters)
         characters = (string_characters.decode()).split("?")
         for i in range(len(characters)-1):
             this_char = characters[i].split("!")
@@ -143,6 +151,7 @@ class NetworkClientController:
                 self.model.player.immunity = int(this_char[2])
                 self.model.player.disarmed = int(this_char[3])
                 self.model.player.direction = int(this_char[6])
+        return True
 
     def load_model_fruits_from_str(self,string_fruits):
 
@@ -207,16 +216,29 @@ class NetworkClientController:
 
 
     def get_model(self):
+        bool = True
         self.socket_server.send("LOAD_MODEL CHARACTERS&".encode())
-        self.load_model_characters_from_str(self.socket_server.recv(4096))
+        bool = self.load_model_characters_from_str(self.socket_server.recv(4096))
+        if bool==False:
+            return False
         self.socket_server.send("LOAD_MODEL FRUITS&".encode())
         self.load_model_fruits_from_str_no_add(self.socket_server.recv(4096))
         self.socket_server.send("LOAD_MODEL BOMBS&".encode())
         msg = self.socket_server.recv(4096)
         self.load_model_bombs_from_str(msg)
+        return bool
     # time event
+    def redirection_dead(self,port):
+        addrs = socket.getaddrinfo(host,"http",0,socket.SOCK_STREAM)
+        ADDR=(host,port)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(ADDR)
+        s.send("GET_MAP_NAME&".encode())
+        model = Model()
+        model.load_map(s.recv(4096).decode())
+        pygame.quit()
 
     def tick(self, dt):
-        self.get_model()
+        bool = self.get_model()
         self.model.tick(dt)
-        return True
+        return self.model.look(self.nickname)!=None

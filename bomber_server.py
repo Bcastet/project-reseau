@@ -82,8 +82,17 @@ while True:
                     if msg.startswith("GET_MAP_NAME".encode()):
                         i.send(map_file.encode())
                     if msg.startswith("LOAD_MODEL".encode()):
-                        msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
-                        server.send_model(i,msg_bis)
+                        for y in server.model.characters:
+                            bool = False
+                            print(server.nicks_list[i])
+                            if y.nickname.encode()==server.nicks_list[i]:
+                                bool = True
+                            break
+                        if bool:
+                            msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
+                            server.send_model(i,msg_bis)
+                        else :
+                            i.send("DEAD!7776?".encode())
                     if msg.startswith("MOVE".encode()):
                         msg = msg.decode()
                         direction = msg.replace("MOVE ","")
@@ -95,7 +104,6 @@ while True:
     #all elements computed, actualize clock and sending server_model
         dt = clock.tick(FPS)
         server.tick(dt)
-
         model.tick(dt)
         view.tick(dt)
 
