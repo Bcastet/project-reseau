@@ -12,18 +12,30 @@ class NetworkServerController:
     def __init__(self, model, port):
         self.model = model
         self.port = port
-        self.socket_client_list=[]
+        self.socket_client_list={}
         self.nicks_list={}
 
     def get_socket_client_list(self):
-        return self.socket_client_list
+        return list(self.socket_client_list.keys())
 
     def add_socket(self,socket):
-        self.socket_client_list.append(socket)
+        self.socket_client_list[socket]=0
 
     # time event
+    def kick(self,socket):
+            self.model.kill_character(self.nicks_list[socket].decode())
+            del(self.socket_client_list[socket])
 
     def tick(self, dt):
+        to_kick=[]
+        if random.randint(0,100)==1:
+            self.model.add_fruit()
+        for i in self.socket_client_list.keys():
+            self.socket_client_list[i]=self.socket_client_list[i]+1
+            if self.socket_client_list[i]==40:
+                to_kick.append(i)
+        for i in to_kick:
+            self.kick(i)
         return True
 
     def add_name(self,msg,socket):
@@ -38,7 +50,7 @@ class NetworkServerController:
             char = char+((str(self.model.characters[i].kind)+"!"+str(self.model.characters[i].health)+"!"+str(self.model.characters[i].immunity)+"!"+str(self.model.characters[i].disarmed)
             +"!"+str(self.model.characters[i].nickname)+"!"+str(self.model.characters[i].pos)+"!"+str(self.model.characters[i].direction)+"?"))
         socket.send(char.encode())
-        print(char)
+
 
     def send_model_bombs(self,socket):
         bombs = "!"
@@ -154,8 +166,11 @@ class NetworkClientController:
                 self.model.fruits[i].pos=pos
             else:
                 pos = self.position_from_str(this_fruit[0])
-                self.model.fruits[i].kind=int(this_fruit[1])
-                self.model.fruits[i].pos=pos
+                if i>=len(self.model.fruits):
+                    self.model.add_fruit(int(this_fruit[1]),pos)
+                else:
+                    self.model.fruits[i].kind=int(this_fruit[1])
+                    self.model.fruits[i].pos=pos
 
     def load_model_bombs_from_str(self,string_bombs):
         bombs = (string_bombs.decode().split("?"))

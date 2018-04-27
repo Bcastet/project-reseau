@@ -280,3 +280,5 @@ class Model:
             for character in self.characters:
                 if character.explosion(bomb):
                     self.kill_character(character.nickname)
+
+        

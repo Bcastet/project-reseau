@@ -58,7 +58,7 @@ while True:
     view.tick(dt)
     if not kb.tick(dt): break
     if not client.tick(dt): break
-    
+
     #model.tick(dt)
 
 

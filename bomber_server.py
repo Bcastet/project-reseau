@@ -9,6 +9,7 @@ import socket
 import select
 import sys
 import pygame
+import errno
 
 ### python version ###
 print("python version: {}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2]))
@@ -53,7 +54,7 @@ view = GraphicView(model, "server")
 # main loop
 while True:
     # make sure game doesn't run at more than FPS frames per second
-    r, _, _ = select.select(server.get_socket_client_list()+[sock],[],[])
+    r, l, _ = select.select(server.get_socket_client_list()+[sock],[],[])
     new_element_this_tick= []
     for i in r:
         if i==sock:
@@ -61,33 +62,42 @@ while True:
             server.add_socket(sock_received)
             server.nicks_list[sock_received]="NO NAME"
         else:
-            msg1 , addr = i.recvfrom(2048)
-            #print(msg)
-            msg1=msg1.split("&".encode())
-            for msg in msg1:
-                if msg.startswith("NAME".encode()):
-                    server.add_name(msg,i)
-                if msg.startswith("GET_MAP_NAME".encode()):
-                    i.send(map_file.encode())
-                if msg.startswith("LOAD_MODEL".encode()):
-                    msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
+            try:
+                msg1 , addr = i.recvfrom(2048)
+            except Exception as e:
+                    print("Client connection died")
+                    server.kick(i)
+                    break
 
-                    server.send_model(i,msg_bis)
-                if msg.startswith("MOVE".encode()):
-                    msg = msg.decode()
-                    direction = msg.replace("MOVE ","")
-                    server.model.move_character(server.nicks_list[i].decode(),int(direction))
-                else:
-                    if msg.startswith("DROP_BOMB".encode()):
-                        server.model.drop_bomb(server.nicks_list[i].decode())
-
-
-
+            if msg1=="".encode():
+                print("nothing")
+                server.socket_client_list[i]=server.socket_client_list[i]+1
+                if server.socket_client_list[i]==40:
+                    server.kick(i)
+            else:
+                msg1=msg1.split("&".encode())
+                for msg in msg1:
+                    if msg.startswith("NAME".encode()):
+                        server.add_name(msg,i)
+                    if msg.startswith("GET_MAP_NAME".encode()):
+                        i.send(map_file.encode())
+                    if msg.startswith("LOAD_MODEL".encode()):
+                        msg_bis = msg.replace("LOAD_MODEL ".encode(),"".encode())
+                        server.send_model(i,msg_bis)
+                    if msg.startswith("MOVE".encode()):
+                        msg = msg.decode()
+                        direction = msg.replace("MOVE ","")
+                        server.model.move_character(server.nicks_list[i].decode(),int(direction))
+                    else:
+                        if msg.startswith("DROP_BOMB".encode()):
+                            server.model.drop_bomb(server.nicks_list[i].decode())
+                server.socket_client_list[i]=0
     #all elements computed, actualize clock and sending server_model
-    dt = clock.tick(FPS)
-    server.tick(dt)
-    model.tick(dt)
-    view.tick(dt)
+        dt = clock.tick(FPS)
+        server.tick(dt)
+
+        model.tick(dt)
+        view.tick(dt)
 
 # quit
 print("Game Over!")
